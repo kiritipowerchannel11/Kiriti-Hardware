@@ -1,0 +1,22 @@
+Create a modern, clean, and mobile-first E-commerce web app for "Kiriti Hardware" with the following specifications:
+
+1. Top Category Bar (Compact Single Line):
+   - REMOVE the "All" category button entirely.
+   - Display ONLY 3 categories: "Electrical", "Hardware", and "Plumbing".
+   - Place them in a single, neat horizontal line (no wrap, no horizontal scrolling needed) so they fit perfectly on any mobile screen.
+   - Default active category: "Electrical".
+
+2. Product Cards & Details Layout (Exact Top-to-Bottom Hierarchy):
+   - Key-Value Specification Table: Displayed at the very top (e.g., Material, Size, Gauge).
+   - Brand / Product Name: Positioned right below the specification table.
+   - Description Section & "View Details >": Positioned below the Brand Name, featuring an expandable/collapsible toggle ("View Details >") for complete product descriptions and usage guides.
+   - Product Image & Portrait Cards: Ensure high-quality product images remain intact and visible.
+
+3. Complete Data Persistence (LocalStorage):
+   - Use browser `localStorage` to save all inventory items, custom products, images, and prices.
+   - Navigating between pages/tabs or refreshing the app must NEVER erase or reset the data.
+
+4. Admin Panel Integration:
+   - Provide an Admin Panel with input fields matching the product hierarchy (Specifications -> Brand Name -> Description -> Images).
+   - Dynamically update the app inventory and persist edits directly to `localStorage`.
+   
