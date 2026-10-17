@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiriti Hardware</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 pb-20">
+
+  <!-- Header -->
+  <header class="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center">
+    <h1 class="text-xl font-bold tracking-wide">Kiriti Hardware</h1>
+    <button onclick="toggleAdminModal()" class="bg-blue-800 text-xs px-3 py-1.5 rounded hover:bg-blue-900 border border-blue-400">
+      + Add Product
+    </button>
+  </header>
+
+  <!-- Single-line Category Filter Bar (No 'All' option) -->
+  <nav class="bg-white shadow-sm border-b sticky top-[60px] z-40">
+    <div class="flex justify-around p-2 max-w-md mx-auto">
+      <button onclick="filterCategory('Electrical')" id="btn-Electrical" class="cat-btn flex-1 mx-1 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition">Electrical</button>
+      <button onclick="filterCategory('Hardware')" id="btn-Hardware" class="cat-btn flex-1 mx-1 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700 transition">Hardware</button>
+      <button onclick="filterCategory('Plumbing')" id="btn-Plumbing" class="cat-btn flex-1 mx-1 py-2 text-sm font-semibold rounded-lg bg-gray-100 text-gray-700 transition">Plumbing</button>
+    </div>
+  </nav>
+
+  <!-- Product List Container -->
+  <main class="p-4 max-w-md mx-auto space-y-4" id="productList">
+    <!-- Products rendered dynamically -->
+  </main>
+
+  <!-- Admin Panel Modal -->
+  <div id="adminModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg p-5 w-full max-w-md max-h-[90vh] overflow-y-auto">
+      <h2 class="text-lg font-bold mb-4 text-blue-700 border-b pb-2">Add New Product</h2>
+      <form id="productForm" onsubmit="handleFormSubmit(event)" class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Category</label>
+          <select id="pCategory" class="w-full border p-2 rounded text-sm mt-1" required>
+            <option value="Electrical">Electrical</option>
+            <option value="Hardware">Hardware</option>
+            <option value="Plumbing">Plumbing</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Brand / Product Name</label>
+          <input type="text" id="pName" placeholder="e.g. Havells 2.5sqmm Wire" class="w-full border p-2 rounded text-sm mt-1" required>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Price (₹)</label>
+          <input type="number" id="pPrice" placeholder="e.g. 1450" class="w-full border p-2 rounded text-sm mt-1" required>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Image URL</label>
+          <input type="url" id="pImage" placeholder="https://..." class="w-full border p-2 rounded text-sm mt-1" required>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Specifications (Key:Value separated by comma)</label>
+          <input type="text" id="pSpecs" placeholder="Material: Copper, Size: 90m, Gauge: 18" class="w-full border p-2 rounded text-sm mt-1" required>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-600">Description</label>
+          <textarea id="pDesc" rows="3" placeholder="Enter product usage and description..." class="w-full border p-2 rounded text-sm mt-1" required></textarea>
+        </div>
+        <div class="flex justify-end space-x-2 pt-3">
+          <button type="button" onclick="toggleAdminModal()" class="px-4 py-2 bg-gray-200 text-sm rounded">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded font-semibold">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const defaultProducts = [
+      {
+        id: 1,
+        category: 'Electrical',
+        name: 'Havells 2.5 sq mm Copper Wire (90m)',
+        price: 1850,
+        image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=500&q=80',
+        specs: { 'Material': 'Pure Copper', 'Length': '90 Meters', 'Gauge': '2.5 sq mm', 'Insulation': 'FR PVC' },
+        description: 'High quality flame retardant copper wire suitable for residential and commercial electrical wiring with high conductivity.'
+      },
+      {
+        id: 2,
+        category: 'Hardware',
+        name: 'Stainless Steel Heavy Duty Door Lock',
+        price: 890,
+        image: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=500&q=80',
+        specs: { 'Material': 'SS 304 Grade', 'Finish': 'Satin Chrome', 'Keys': '3 Brass Keys', 'Warranty': '5 Years' },
+        description: 'Premium rust-resistant door lock set designed for exterior doors providing maximum security and durability.'
+      },
+      {
+        id: 3,
+        category: 'Plumbing',
+        name: 'Supreme 1 inch PVC Pipes (6 Meter)',
+        price: 340,
+        image: 'https://images.unsplash.com/photo-1542013936693-884638332954?auto=format&fit=crop&w=500&q=80',
+        specs: { 'Brand': 'Supreme', 'Diameter': '1 Inch', 'Length': '6 Meters', 'Class': 'Class 3 (6 kg/cm²)' },
+        description: 'Durable heavy-duty PVC pipe ideal for cold water supply lines, irrigation, and plumbing connections.'
+      }
+    ];
+
+    let currentCategory = 'Electrical';
+
+    function getProducts() {
+      const stored = localStorage.getItem('kiriti_products');
+      return stored ? JSON.parse(stored) : defaultProducts;
+    }
+
+    function saveProducts(products) {
+      localStorage.setItem('kiriti_products', JSON.stringify(products));
+    }
+
+    if (!localStorage.getItem('kiriti_products')) {
+      saveProducts(defaultProducts);
+    }
+
+    function renderProducts() {
+      const products = getProducts().filter(p => p.category === currentCategory);
+      const listEl = document.getElementById('productList');
+      listEl.innerHTML = '';
+
+      if (products.length === 0) {
+        listEl.innerHTML = `<p class="text-center text-gray-500 my-8">No products found in ${currentCategory}.</p>`;
+        return;
+      }
+
+      products.forEach(p => {
+        let specsHtml = '<table class="w-full text-xs text-left text-gray-600 border mb-2 bg-gray-50">';
+        for (let key in p.specs) {
+          specsHtml += `<tr class="border-b"><td class="font-semibold p-1.5 border-r w-1/3 bg-gray-100">${key}</td><td class="p-1.5">${p.specs[key]}</td></tr>`;
+        }
+        specsHtml += '</table>';
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg shadow border p-3 flex flex-col';
+        card.innerHTML = `
+          <img src="${p.image}" alt="${p.name}" class="w-full h-44 object-cover rounded-md mb-3">
+          
+          <!-- 1. Key-Value Specification Table at Top -->
+          ${specsHtml}
+          
+          <!-- 2. Brand / Product Name below Specs -->
+          <h3 class="font-bold text-gray-800 text-base mb-1">${p.name}</h3>
+          <p class="text-blue-700 font-extrabold text-lg mb-2">₹${p.price}</p>
+          
+          <!-- 3. Expandable Description Block -->
+          <div class="border-t pt-2">
+            <button onclick="toggleDetails(${p.id})" class="text-xs font-bold text-blue-600 hover:underline flex items-center justify-between w-full">
+              <span>View Details</span>
+              <span id="icon-${p.id}">></span>
+            </button>
+            <div id="desc-${p.id}" class="hidden text-xs text-gray-600 mt-2 bg-blue-50 p-2.5 rounded border border-blue-100">
+              ${p.description}
+            </div>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function filterCategory(cat) {
+      currentCategory = cat;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-gray-700');
+      });
+      const activeBtn = document.getElementById(`btn-${cat}`);
+      activeBtn.classList.remove('bg-gray-100', 'text-gray-700');
+      activeBtn.classList.add('bg-blue-600', 'text-white');
+      renderProducts();
+    }
+
+    function toggleDetails(id) {
+      const descEl = document.getElementById(`desc-${id}`);
+      const iconEl = document.getElementById(`icon-${id}`);
+      if (descEl.classList.contains('hidden')) {
+        descEl.classList.remove('hidden');
+        iconEl.innerText = 'v';
+      } else {
+        descEl.classList.add('hidden');
+        iconEl.innerText = '>';
+      }
+    }
+
+    function toggleAdminModal() {
+      document.getElementById('adminModal').classList.toggle('hidden');
+    }
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const specsRaw = document.getElementById('pSpecs').value;
+      const specsObj = {};
+      specsRaw.split(',').forEach(pair => {
+        const [k, v] = pair.split(':');
+        if (k && v) specsObj[k.trim()] = v.trim();
+      });
+
+      const newProduct = {
+        id: Date.now(),
+        category: document.getElementById('pCategory').value,
+        name: document.getElementById('pName').value,
+        price: Number(document.getElementById('pPrice').value),
+        image: document.getElementById('pImage').value,
+        specs: Object.keys(specsObj).length ? specsObj : { 'Details': 'Standard Quality' },
+        description: document.getElementById('pDesc').value
+      };
+
+      const products = getProducts();
+      products.unshift(newProduct);
+      saveProducts(products);
+      toggleAdminModal();
+      document.getElementById('productForm').reset();
+      filterCategory(newProduct.category);
+    }
+
+    renderProducts();
+  </script>
+</body>
+  </html>
+  
